@@ -333,6 +333,6 @@ import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"[*] Flask app başlatılıyor... http://0.0.0.0:{port} adresini açınız.")
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port)
+
 
