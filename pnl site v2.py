@@ -728,4 +728,4 @@ def api_proxy(api_name):
         return jsonify({"error": "API çağrısında hata oluştu."})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
