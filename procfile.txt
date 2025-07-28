@@ -1,1 +1,1 @@
-web: python pnl site v2.py
+python pnl_site_v2.py
