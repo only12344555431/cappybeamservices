@@ -1,16 +1,15 @@
+import subprocess
+import sys
 from flask import Flask, render_template_string, request, jsonify, session, redirect, url_for
 import requests
 import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from urllib.parse import quote
 
 app = Flask(__name__)
 app.secret_key = "cappybeam_secret_key_1234"
-app.config['JSON_AS_ASCII'] = False
 
-# KULLANICI YÖNETİMİ
 USERS_FILE = "users.json"
 
 def load_users():
@@ -23,7 +22,6 @@ def save_users(users):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, indent=2, ensure_ascii=False)
 
-# GİRİŞ GEREKTİREN ROTALAR
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -32,154 +30,24 @@ def login_required(func):
         return func(*args, **kwargs)
     return wrapper
 
-# TÜM API TANIMLARI (GÜNCEL)
-API_CONFIG = {
-    "adsoyad": {
-        "url": "https://api.hexnox.pro/sowixapi/adsoyadilice.php",
-        "params": lambda d: {
-            "ad": d["val1"],
-            "soyad": d.get("val2", ""),
-            "key": "YOUR_API_KEY",  # API KEY BURAYA
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "tcpro": {
-        "url": "https://api.hexnox.pro/sowixapi/tcpro.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    # Diğer API'ler aynı formatta eklenecek
-    "tcgsm": {
-        "url": "https://api.hexnox.pro/sowixapi/tcgsm.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "tapu": {
-        "url": "https://api.hexnox.pro/sowixapi/tapu.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "sulale": {
-        "url": "https://api.hexnox.pro/sowixapi/sulale.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "okulno": {
-        "url": "https://api.hexnox.pro/sowixapi/okulno.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "isyeriyetkili": {
-        "url": "https://api.hexnox.pro/sowixapi/isyeriyetkili.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "gsmdetay": {
-        "url": "https://api.hexnox.pro/sowixapi/gsmdetay.php",
-        "params": lambda d: {
-            "gsm": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "gsm": {
-        "url": "https://api.hexnox.pro/sowixapi/gsm.php",
-        "params": lambda d: {
-            "gsm": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "adres": {
-        "url": "https://api.hexnox.pro/sowixapi/adres.php",
-        "params": lambda d: {
-            "tc": d["val1"],
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    },
-    "adsoyadilice": {
-        "url": "https://api.hexnox.pro/sowixapi/adsoyadilice.php",
-        "params": lambda d: {
-            "ad": d["val1"],
-            "soyad": d.get("val2", ""),
-            "key": "YOUR_API_KEY",
-            "db": "main",
-            "format": "json"
-        }
-    }
+API_URLS = {
+    "adsoyad": lambda ad, soyad: f"https://api.hexnox.pro/sowixapi/adsoyadilice.php?ad={ad}&soyad={soyad}",
+    "adsoyadil": lambda ad, soyad_il: f"https://api.hexnox.pro/sowixapi/adsoyadilice.php?ad={ad}&soyad={soyad_il.split(' ')[0] if soyad_il else ''}&il={soyad_il.split(' ')[1] if soyad_il and ' ' in soyad_il else ''}",
+    "tcpro": lambda tc, _: f"https://api.hexnox.pro/sowixapi/tcpro.php?tc={tc}",
+    "tcgsm": lambda tc, _: f"https://api.hexnox.pro/sowixapi/tcgsm.php?tc={tc}",
+    "tapu": lambda tc, _: f"https://api.hexnox.pro/sowixapi/tapu.php?tc={tc}",
+    "sulale": lambda tc, _: f"https://api.hexnox.pro/sowixapi/sulale.php?tc={tc}",
+    "vesika": lambda tc, _: f"http://20.122.193.203/apiservice/woxy/tc.php?tc={tc}&auth=woxynindaramcigi",
+    "allvesika": lambda tc, _: f"http://84.32.15.160/apiservice/woxy/allvesika.php?tc={tc}&auth=cyberinsikimemesiamigotu",
+    "okulsicil": lambda tc, _: f"https://merial.cfd/Daimon/freePeker/okulsicil.php?tc={tc}",
+    "kizlik": lambda tc, _: f"http://212.68.34.148/apiservices/kizlik?tc={tc}",
+    "okulno": lambda tc, _: f"https://api.hexnox.pro/sowixapi/okulno.php?tc={tc}",
+    "isyeriyetkili": lambda tc, _: f"https://api.hexnox.pro/sowixapi/isyeriyetkili.php?tc={tc}",
+    "gsmdetay": lambda gsm, _: f"https://api.hexnox.pro/sowixapi/gsmdetay.php?gsm={gsm}",
+    "gsm": lambda gsm, _: f"https://api.hexnox.pro/sowixapi/gsm.php?gsm={gsm}",
+    "adres": lambda tc, _: f"https://api.hexnox.pro/sowixapi/adres.php?tc={tc}",
 }
 
-def make_api_request(query_type, data):
-    if query_type not in API_CONFIG:
-        return {"error": "Geçersiz sorgu tipi"}
-    
-    config = API_CONFIG[query_type]
-    params = config["params"](data)
-    
-    try:
-        response = requests.get(
-            config["url"],
-            params=params,
-            headers={
-                "User-Agent": "CappyBeamServices/1.0",
-                "Accept": "application/json"
-            },
-            timeout=20
-        )
-        
-        # HTTP hatalarını kontrol et
-        response.raise_for_status()
-        
-        # Yanıtı işle
-        try:
-            result = response.json()
-            
-            # API'nin döndürdüğü boş yanıtları kontrol et
-            if not result:
-                return {"error": "Sonuç bulunamadı", "api_response": result}
-                
-            return result
-            
-        except ValueError:
-            return {"error": "API geçersiz JSON yanıtı verdi", "raw_response": response.text}
-            
-    except requests.exceptions.Timeout:
-        return {"error": "API zaman aşımı (20 saniye)"}
-    except requests.exceptions.RequestException as e:
-        return {"error": f"API bağlantı hatası: {str(e)}"}
-    except Exception as e:
-        return {"error": f"Beklenmeyen hata: {str(e)}"}
-
-# HTML TEMPLATELER (ORJINAL)
 LOGIN_HTML = """
 <!DOCTYPE html>
 <html lang="tr">
@@ -764,6 +632,10 @@ PANEL_HTML = """
       <li><button class="query-btn" data-query="tcgsm"><i class="fas fa-phone"></i> TC GSM</button></li>
       <li><button class="query-btn" data-query="tapu"><i class="fas fa-home"></i> Tapu</button></li>
       <li><button class="query-btn" data-query="sulale"><i class="fas fa-users"></i> Sülale</button></li>
+      <li><button class="query-btn" data-query="vesika"><i class="fas fa-id-badge"></i> Vesika</button></li>
+      <li><button class="query-btn" data-query="allvesika"><i class="fas fa-id-card-alt"></i> Tüm Vesika</button></li>
+      <li><button class="query-btn" data-query="okulsicil"><i class="fas fa-graduation-cap"></i> Okul Sicil</button></li>
+      <li><button class="query-btn" data-query="kizlik"><i class="fas fa-female"></i> Kızlık Soyadı</button></li>
       <li><button class="query-btn" data-query="okulno"><i class="fas fa-school"></i> Okul No</button></li>
       <li><button class="query-btn" data-query="isyeriyetkili"><i class="fas fa-briefcase"></i> İşyeri Yetkili</button></li>
       <li><button class="query-btn" data-query="gsmdetay"><i class="fas fa-mobile-alt"></i> GSM Detay</button></li>
@@ -785,8 +657,8 @@ PANEL_HTML = """
     <form id="query-form" style="display:none;" aria-label="Sorgu formu">
       <label id="label1" for="input1">Ad:</label>
       <input type="text" id="input1" name="input1" required autocomplete="off" />
-      <label id="label2" for="input2">Soyad:</label>
-      <input type="text" id="input2" name="input2" autocomplete="off" />
+      <label id="label2" for="input2">Soyad/İl (Opsiyonel):</label>
+      <input type="text" id="input2" name="input2" autocomplete="off" placeholder="Sadece soyad veya 'soyad il' şeklinde girin" />
       <button type="submit" class="submit-btn" aria-label="Sorguyu çalıştır"><i class="fas fa-search"></i> Sorgula</button>
     </form>
     <div class="result-container" id="result-container" aria-live="polite" aria-atomic="true" style="display:none;"></div>
@@ -825,6 +697,10 @@ PANEL_HTML = """
     "tcgsm": ["TC Kimlik No", ""],
     "tapu": ["TC Kimlik No", ""],
     "sulale": ["TC Kimlik No", ""],
+    "vesika": ["TC Kimlik No", ""],
+    "allvesika": ["TC Kimlik No", ""],
+    "okulsicil": ["TC Kimlik No", ""],
+    "kizlik": ["TC Kimlik No", ""],
     "okulno": ["TC Kimlik No", ""],
     "isyeriyetkili": ["TC Kimlik No", ""],
     "gsmdetay": ["GSM Numarası", ""],
@@ -929,7 +805,7 @@ PANEL_HTML = """
     return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', e => {
     e.preventDefault();
     resultContainer.innerHTML = '<div style="padding:1rem;text-align:center;"><span class="loading"></span> Sorgulanıyor, lütfen bekleyin...</div>';
     resultContainer.style.display = "block";
@@ -942,134 +818,149 @@ PANEL_HTML = """
       return;
     }
     
-    try {
-      const response = await fetch("/api/query", {
-                method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query_type: currentQuery,
-          val1: val1,
-          val2: val2
-        })
-      });
-      
-      const data = await response.json();
-      
-      if(data.error) {
-        resultContainer.innerHTML = `<div style="padding:1rem;color:#e74c3c;font-weight:600;">Hata: ${data.error}</div>`;
-        if(data.api_response) {
-          resultContainer.innerHTML += `<div style="margin-top:1rem;">${createTableFromData(data.api_response)}</div>`;
-        }
-      } else {
-        resultContainer.innerHTML = createTableFromData(data);
+    fetch("/api/query", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        query: currentQuery,
+        val1: val1,
+        val2: val2
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('API hatası');
       }
-    } catch (err) {
-      resultContainer.innerHTML = `<div style="padding:1rem;color:#e74c3c;font-weight:600;">İstek sırasında hata oluştu: ${err.message}</div>`;
-    }
+      return response.json();
+    })
+    .then(data => {
+      if (data.error) {
+        resultContainer.innerHTML = `<div style="padding:1rem;color:#e74c3c;font-weight:600;">Hata: ${data.error}</div>`;
+      } else {
+        resultContainer.innerHTML = createTableFromData(data.result);
+      }
+    })
+    .catch(error => {
+      resultContainer.innerHTML = `<div style="padding:1rem;color:#e74c3c;font-weight:600;">İstek sırasında hata oluştu: ${error.message}</div>`;
+    });
   });
 
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    fetch('/logout', { method: 'POST' })
-      .then(() => window.location.href = '/login')
-      .catch(err => console.error('Çıkış hatası:', err));
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    window.location.href = "/logout";
   });
 </script>
+
 </body>
 </html>
 """
 
-# ROTALAR
 @app.route("/")
-@login_required
 def index():
-    return redirect(url_for("panel"))
+    if "user" in session:
+        return redirect(url_for("panel"))
+    return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if "user" in session:
-        return redirect(url_for("panel"))
-    
+    error = None
     if request.method == "POST":
         username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        
+        password = request.form.get("password", "")
         users = load_users()
-        
-        if username not in users:
-            return render_template_string(LOGIN_HTML, error="Kullanıcı bulunamadı")
-        
-        if not check_password_hash(users[username]["password"], password):
-            return render_template_string(LOGIN_HTML, error="Geçersiz şifre")
-        
-        session["user"] = username
-        return redirect(url_for("panel"))
-    
-    return render_template_string(LOGIN_HTML)
+        if username in users and check_password_hash(users[username]["password"], password):
+            session["user"] = username
+            return redirect(url_for("panel"))
+        else:
+            error = "Kullanıcı adı veya şifre hatalı."
+    return render_template_string(LOGIN_HTML, error=error)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if "user" in session:
-        return redirect(url_for("panel"))
-    
+    error = None
     if request.method == "POST":
         username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        password2 = request.form.get("password2", "").strip()
-        
-        if not username or not password:
-            return render_template_string(REGISTER_HTML, error="Kullanıcı adı ve şifre gereklidir")
-        
-        if password != password2:
-            return render_template_string(REGISTER_HTML, error="Şifreler eşleşmiyor")
-        
-        users = load_users()
-        
-        if username in users:
-            return render_template_string(REGISTER_HTML, error="Kullanıcı zaten mevcut")
-        
-        users[username] = {
-            "password": generate_password_hash(password),
-            "created_at": datetime.now().isoformat()
-        }
-        
-        save_users(users)
-        session["user"] = username
-        return redirect(url_for("panel"))
-    
-    return render_template_string(REGISTER_HTML)
+        password = request.form.get("password", "")
+        password2 = request.form.get("password2", "")
+        if not username or not password or not password2:
+            error = "Tüm alanları doldurun."
+        elif password != password2:
+            error = "Şifreler eşleşmiyor."
+        else:
+            users = load_users()
+            if username in users:
+                error = "Bu kullanıcı adı zaten alınmış."
+            else:
+                users[username] = {
+                    "password": generate_password_hash(password)
+                }
+                save_users(users)
+                session["user"] = username
+                return redirect(url_for("panel"))
+    return render_template_string(REGISTER_HTML, error=error)
+
+@app.route("/logout")
+@login_required
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 @app.route("/panel")
 @login_required
 def panel():
-    return render_template_string(PANEL_HTML, user=session["user"])
+    return render_template_string(PANEL_HTML)
 
 @app.route("/api/query", methods=["POST"])
 @login_required
 def api_query():
-    if not request.is_json:
-        return jsonify({"error": "Geçersiz istek formatı"}), 400
-    
     data = request.get_json()
-    query_type = data.get("query_type")
+    query = data.get("query")
     val1 = data.get("val1")
-    val2 = data.get("val2", "")
-    
-    if not query_type or not val1:
-        return jsonify({"error": "Eksik parametreler"}), 400
-    
-    # API isteği yap
-    api_data = {"val1": val1, "val2": val2}
-    result = make_api_request(query_type, api_data)
-    
-    return jsonify(result)
+    val2 = data.get("val2")
 
-@app.route("/logout", methods=["POST"])
-@login_required
-def logout():
-    session.pop("user", None)
-    return jsonify({"status": "success"})
+    if query not in API_URLS:
+        return jsonify({"error": "Geçersiz sorgu tipi."})
+
+    url_func = API_URLS[query]
+
+    try:
+        if query == "adsoyadil":
+            if val2 and ' ' in val2:
+                parts = val2.split(' ')
+                soyad = parts[0]
+                il = ' '.join(parts[1:])
+                url = f"https://api.hexnox.pro/sowixapi/adsoyadilice.php?ad={val1}&soyad={soyad}&il={il}"
+            elif val2:
+                url = f"https://api.hexnox.pro/sowixapi/adsoyadilice.php?ad={val1}&soyad={val2}"
+            else:
+                url = f"https://api.hexnox.pro/sowixapi/adsoyadilice.php?ad={val1}"
+        else:
+            url = url_func(val1, val2)
+            
+        r = requests.get(url, timeout=15)
+        r.raise_for_status()
+        
+        try:
+            result = r.json()
+            
+            if query in ["vesika", "allvesika", "okulsicil", "kizlik", "sulale"]:
+                if isinstance(result, list):
+                    return jsonify({"result": result})
+                elif isinstance(result, dict):
+                    return jsonify({"result": [result]})
+                else:
+                    return jsonify({"result": result})
+            
+            if isinstance(result, list):
+                return jsonify({"result": result})
+            elif isinstance(result, dict) and ("data" in result or "results" in result):
+                return jsonify({"result": result.get("data", result.get("results"))})
+            else:
+                return jsonify({"result": result})
+        except ValueError:
+            return jsonify({"result": r.text})
+    except Exception as e:
+        return jsonify({"error": f"API sorgusu başarısız: {str(e)}"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
