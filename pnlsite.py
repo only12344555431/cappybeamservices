@@ -810,5 +810,7 @@ def chat(user_id):
 </script>
 ''' + BASE_FOOTER, title=f'Mesaj: {receiver.username} - C7KA Forum', receiver=receiver, messages=messages, current_user=current_user)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
+
