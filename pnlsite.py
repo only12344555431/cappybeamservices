@@ -68,7 +68,7 @@ BASE_HEADER = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}C7KA Forum{% endblock %}</title>
+    <title>{% block title %}CAPPYBEAMSERVİCES Forum{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -260,7 +260,7 @@ BASE_HEADER = '''
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('forum') }}">
-                <i class="fas fa-fire"></i> C7KA Forum
+                <i class="fas fa-fire"></i> CAPPYBEAMSERVİCES Forum
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -322,11 +322,11 @@ BASE_FOOTER = '''
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>C7KA Forum</h5>
-                    <p>c7ka üyeleri için gelişmiş forum platformu.</p>
+                    <h5>CAPPYBEAMSERVİCES Forum</h5>
+                    <p>CAPPYBEAMSERVİCES üyeleri için gelişmiş forum platformu.</p>
                 </div>
                 <div class="col-md-6 text-end">
-                    <p>&copy; 2025 C7KA Forum. Tüm hakları saklıdır.</p>
+                    <p>&copy; 2025 CAPPYBEAMSERVİCES Forum. Tüm hakları saklıdır.</p>
                     <div class="social-links">
                         <a href="#" class="me-2"><i class="fab fa-github fa-lg"></i></a>
                         <a href="#" class="me-2"><i class="fab fa-twitter fa-lg"></i></a>
@@ -365,8 +365,8 @@ def home():
     <pre id="intro-text" class="intro-text"></pre>
 </div>
 <script>
-    const introText = `root@kali:~$ sudo systemctl start c7ka-forum
-[OK] Initializing C7KA Forum Network...
+    const introText = `root@kali:~$ sudo systemctl start CAPPYBEAMSERVİCES-forum
+[OK] Initializing CAPPYBEAMSERVİCES Forum Network...
 [OK] System Root Login Successful
 [OK] Accessing Cehennem Interface...`;
     const introElement = document.getElementById('intro-text');
@@ -386,7 +386,7 @@ def home():
     }
     typeWriter();
 </script>
-''' + BASE_FOOTER, title='C7KA Forum - Ana Sayfa')
+''' + BASE_FOOTER, title='CAPPYBEAMSERVİCES Forum - Ana Sayfa')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -429,7 +429,7 @@ def register():
         </div>
     </div>
 </div>
-''' + BASE_FOOTER, title='Kayıt Ol - C7KA Forum')
+''' + BASE_FOOTER, title='Kayıt Ol - CAPPYBEAMSERVİCES Forum')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -468,7 +468,7 @@ def login():
         </div>
     </div>
 </div>
-''' + BASE_FOOTER, title='Giriş Yap - C7KA Forum')
+''' + BASE_FOOTER, title='Giriş Yap - CAPPYBEAMSERVİCES Forum')
 
 @app.route('/logout')
 @login_required
@@ -514,7 +514,7 @@ def profile():
         </div>
     </div>
 </div>
-''' + BASE_FOOTER, title='Profil Düzenle - C7KA Forum', current_user=current_user)
+''' + BASE_FOOTER, title='Profil Düzenle - CAPPYBEAMSERVİCES Forum', current_user=current_user)
 
 @app.route('/user/<username>')
 def user_profile(username):
@@ -579,7 +579,7 @@ def user_profile(username):
     <i class="fas fa-comment"></i>
 </a>
 {% endif %}
-''' + BASE_FOOTER, title=f'{user.username} - C7KA Forum', user=user, threads=threads, posts=posts, current_user=current_user)
+''' + BASE_FOOTER, title=f'{user.username} - CAPPYBEAMSERVİCES Forum', user=user, threads=threads, posts=posts, current_user=current_user)
 
 @app.route('/forum')
 def forum():
@@ -625,7 +625,7 @@ def forum():
         </div>
     {% endif %}
 </div>
-''' + BASE_FOOTER, title='Forum - C7KA Forum', threads=threads, current_user=current_user)
+''' + BASE_FOOTER, title='Forum - CAPPYBEAMSERVİCES Forum', threads=threads, current_user=current_user)
 
 @app.route('/create_thread', methods=['GET', 'POST'])
 @login_required
@@ -665,7 +665,7 @@ def create_thread():
         </div>
     </div>
 </div>
-''' + BASE_FOOTER, title='Yeni Konu - C7KA Forum', current_user=current_user)
+''' + BASE_FOOTER, title='Yeni Konu - CAPPYBEAMSERVİCES Forum', current_user=current_user)
 
 @app.route('/thread/<int:thread_id>', methods=['GET', 'POST'])
 def thread(thread_id):
@@ -751,7 +751,7 @@ def thread(thread_id):
     </div>
     {% endif %}
 </div>
-''' + BASE_FOOTER, title=f'{thread.title} - C7KA Forum', thread=thread, posts=posts, current_user=current_user)
+''' + BASE_FOOTER, title=f'{thread.title} - CAPPYBEAMSERVİCES Forum', thread=thread, posts=posts, current_user=current_user)
 
 @app.route('/chat/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -808,9 +808,8 @@ def chat(user_id):
         scrollChatToBottom();
     });
 </script>
-''' + BASE_FOOTER, title=f'Mesaj: {receiver.username} - C7KA Forum', receiver=receiver, messages=messages, current_user=current_user)
+''' + BASE_FOOTER, title=f'Mesaj: {receiver.username} - CAPPYBEAMSERVİCES Forum', receiver=receiver, messages=messages, current_user=current_user)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-
